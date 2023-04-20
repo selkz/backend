@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 use sha256;
 
-use crate::db::{Database, NewUser};
+use crate::{db::{Database, User}, api::Api};
 
 #[derive(Deserialize)]
 pub struct Input {
@@ -23,26 +23,27 @@ pub struct Return {
 pub struct ReturnUser {
     id: String,
     username: String,
-    email: String
+    email: String,
+    token: String
 }
 
-pub async fn handler(Json(payload): Json<Input>, mut db: Database) -> (StatusCode, Json<Return>) {
+pub async fn handler(Json(payload): Json<Input>, mut api: Api) -> (StatusCode, Json<Return>) {
 
+    let id = Uuid::new_v4().to_string();
     let pwd_hash = sha256::digest(payload.password);
-    let token = token_generator::TokenGenerator::new(0, usize::MAX).gen();
-    // jwt gen
+    let token = crate::util::gen_token(id.clone());
 
-    let new_user = NewUser{
-        id: Uuid::new_v4().to_string(),
+    let new_user = User{
+        id,
         email: payload.email,
         username: payload.username,
         password: pwd_hash,
-        session_token: token
+        session_token: token.clone()
     };
 
-    let Ok(_) = db.register_user(&new_user).await else {
+    if let Err(e) = api.db.create_user(&new_user).await {
         return (StatusCode::BAD_REQUEST, Json(Return{
-            message: "Failed to create user".into(),
+            message: format!("Failed to create user: {e}"),
             user: None,
         }));
     };
@@ -52,6 +53,7 @@ pub async fn handler(Json(payload): Json<Input>, mut db: Database) -> (StatusCod
         id: new_user.id,
         username: new_user.username,
         email: new_user.email,
+        token
     };
 
     (StatusCode::OK, Json(Return{

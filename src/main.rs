@@ -10,7 +10,7 @@ use tokio;
 
 const DB_URL: &str = "./db.sqlite";
 // gen with this (js): "console.log(require('crypto').randomBytes(32).toString('hex'))"
-const SIGN_KEY: &str = "696de9f25b8a582b025156abb9c2a5e37c63fdf3c188ff334d68bdd28ec7be20";
+// const SIGN_KEY: &str = "696de9f25b8a582b025156abb9c2a5e37c63fdf3c188ff334d68bdd28ec7be20";
 
 #[tokio::main]
 async fn main() -> Result<()>{

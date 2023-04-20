@@ -30,12 +30,16 @@ impl Api {
     }
 
     pub fn register_endpoints(&mut self) -> Result<&mut Self> {
-        let uself = self.clone();
+        let self_auth_post = self.clone();
+        let self_auth_get = self.clone();
         self.router = self.router.clone()
-            .route("/", get(routes::root))
-            // .route("/user/add", post(move |body: Json<routes::user::add::Input>| {
-            //     routes::user::add::handler(body, uself.db.clone())
-            // }))
+            .route("/api", get(routes::root))
+            .route("/api/auth", post(move |body: Json<routes::auth::post::Input>| {
+                routes::auth::post::handler(body, self_auth_post.clone())
+            }))
+            .route("/api/auth", get(move |body: Json<routes::auth::get::Input>| {
+                routes::auth::get::handler(body, self_auth_get.clone())
+            }))
             ;
 
         Ok(self)

@@ -1,2 +1,2 @@
-mod get;
-mod post;
+pub mod get;
+pub mod post;
